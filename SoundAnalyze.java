@@ -27,9 +27,9 @@ public class SoundAnalyze
       int frameSize = audioIn.getFormat().getFrameSize();
       byte[] buffer = new byte[frameLength * frameSize];
       System.out.println(audioIn.getFormat());
-      System.out.println(audioIn.getFrameLength());
+      System.out.println("Frame Length: " + audioIn.getFrameLength());
       int readNums = audioIn.read(buffer);
-      System.out.println(readNums);
+      System.out.println("Bytes read : " + readNums);
       Clip clip = AudioSystem.getClip();
       clip.open(audioIn);
 
@@ -43,9 +43,9 @@ public class SoundAnalyze
                    maxIndex = i;
           }
       }
-      System.out.println(max);
-      System.out.println(maxIndex); // frame #
-      System.out.println(maxIndex / frameRate);
+      System.out.println ("Max amplitude: " + max);
+      System.out.println("Max amplitude frame: " + maxIndex); // frame #
+      System.out.println("Max amplitude second: " + maxIndex / frameRate);
     }
     public static int[][] getUnscaledAmplitude(byte[] eightBitByteArray, int nbChannels)
     {
@@ -71,4 +71,3 @@ public class SoundAnalyze
     return toReturn;
 }
 }
-
