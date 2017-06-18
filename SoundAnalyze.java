@@ -1,8 +1,4 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package soundtest;
 
 import java.io.File;
@@ -10,40 +6,43 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import javax.sound.sampled.*;
 
-/**
- *
- * @author Chris
- */
 public class SoundAnalyze 
 {
     public static void main (String []args) throws UnsupportedAudioFileException, IOException, LineUnavailableException, InterruptedException
     {
         
-      File soundFile = new File("spanishfleamono.wav");
+      File soundFile = new File("spanishflea.wav");
       AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile);
 
       int frameLength = (int)audioIn.getFrameLength();
       int frameRate = (int) audioIn.getFormat().getFrameRate();
       int frameSize = audioIn.getFormat().getFrameSize();
+      int numChannels = audioIn.getFormat().getChannels();
       byte[] buffer = new byte[frameLength * frameSize];
       System.out.println(audioIn.getFormat());
       System.out.println("Frame Length: " + audioIn.getFrameLength());
       int readNums = audioIn.read(buffer);
-      System.out.println("Bytes read : " + readNums);
+      System.out.println("Bytes read : " + readNums + "\n" + buffer.length);
       Clip clip = AudioSystem.getClip();
       clip.open(audioIn);
-
-      int[][] data = getUnscaledAmplitude(buffer,clip.getFormat().getChannels());
+      int[][] data = getUnscaledAmplitude(buffer,numChannels);
       int max = 0;
       int maxIndex = 0;
       for (int i = 0; i < data[0].length;i++)
       {
-          if (Math.abs(data[0][i]) > max)
-          {        max = data[0][i];
+          int sample = 0;
+          for (int j = 0; j < numChannels; j++)
+          {
+              sample += Math.abs(data[j][i]);
+          }
+          sample /= numChannels;
+          if (sample > max)
+          {        
+                   max = sample;
                    maxIndex = i;
           }
       }
-      System.out.println ("Max amplitude: " + max);
+      System.out.println("Max amplitude: " + max);
       System.out.println("Max amplitude frame: " + maxIndex); // frame #
       System.out.println("Max amplitude second: " + maxIndex / frameRate);
     }
@@ -67,7 +66,6 @@ public class SoundAnalyze
         }
         index++;
     }
-
     return toReturn;
 }
 }
