@@ -3,17 +3,21 @@ package soundtest;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
-import javax.sound.sampled.*;
-
+import javax.sound.sampled.*; 
+import org.jtransforms.fft.*;
 public class SoundAnalyze 
 {
-    public static void main (String []args) throws UnsupportedAudioFileException, IOException, LineUnavailableException, InterruptedException
+    public static void main (String []args) throws UnsupportedAudioFileException, IOException, LineUnavailableException
     {
-        
-      File soundFile = new File("spanishflea.wav");
+       String fileName = "spanishflea.wav";
+       calculateMaxAmplitude(fileName);
+       calculateAvgAmplitude(fileName);
+       //calculateMaxFrequncy(fileName);
+    }
+    private static void calculateMaxAmplitude(String fileName) throws UnsupportedAudioFileException, IOException, LineUnavailableException
+    {
+      File soundFile = new File(fileName);
       AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile);
-
       int frameLength = (int)audioIn.getFrameLength();
       int frameRate = (int) audioIn.getFormat().getFrameRate();
       int frameSize = audioIn.getFormat().getFrameSize();
@@ -23,17 +27,15 @@ public class SoundAnalyze
       System.out.println("Frame Length: " + audioIn.getFrameLength());
       int readNums = audioIn.read(buffer);
       System.out.println("Bytes read : " + readNums + "\n" + buffer.length);
-      Clip clip = AudioSystem.getClip();
-      clip.open(audioIn);
-      int[][] data = getUnscaledAmplitude(buffer,numChannels);
+      int[][] ampData = getUnscaledAmplitude(buffer,numChannels);
       int max = 0;
-      int maxIndex = 0;
-      for (int i = 0; i < data[0].length;i++)
+      int maxIndex = 0; // frame #
+      for (int i = 0; i < ampData[0].length;i++)
       {
           int sample = 0;
           for (int j = 0; j < numChannels; j++)
           {
-              sample += Math.abs(data[j][i]);
+              sample += Math.abs(ampData[j][i]);
           }
           sample /= numChannels;
           if (sample > max)
@@ -42,30 +44,43 @@ public class SoundAnalyze
                    maxIndex = i;
           }
       }
-      System.out.println("Max amplitude: " + max);
-      System.out.println("Max amplitude frame: " + maxIndex); // frame #
-      System.out.println("Max amplitude second: " + maxIndex / frameRate);
+      System.out.println("Max amplitude: " + max + " at frame " + maxIndex + " (" + (maxIndex / frameRate) + " seconds in)");
     }
-    public static int[][] getUnscaledAmplitude(byte[] eightBitByteArray, int nbChannels)
+    private static void calculateAvgAmplitude(String fileName) throws UnsupportedAudioFileException, IOException 
     {
-    int[][] toReturn = new int[nbChannels][eightBitByteArray.length / (2 * nbChannels)];
-    int index = 0;
+      File soundFile = new File(fileName);
+      AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile);
+      int frameLength = (int)audioIn.getFrameLength();
+      int frameSize = audioIn.getFormat().getFrameSize();
+      int numChannels = audioIn.getFormat().getChannels();
+      byte[] buffer = new byte[frameLength * frameSize];
+      int readNums = audioIn.read(buffer);
+      int[][] ampData = getUnscaledAmplitude(buffer,numChannels);
+      long totalAmp = 0;
+      for (int i = 0; i < ampData.length; i++)
+          for (int j = 0; j < ampData[i].length;j++)
+              totalAmp += Math.abs(ampData[i][j]);
+      System.out.println("Average amplitude is " + ((double)totalAmp / frameLength));
+    }
+    private static int[][] getUnscaledAmplitude(byte[] eightBitByteArray, int nbChannels)
+    {
+        int[][] toReturn = new int[nbChannels][eightBitByteArray.length / (2 * nbChannels)];
+        int index = 0;
 
-    for (int audioByte = 0; audioByte < eightBitByteArray.length;)
-    {
-        for (int channel = 0; channel < nbChannels; channel++)
+        for (int audioByte = 0; audioByte < eightBitByteArray.length;)
         {
-            // Do the byte to sample conversion.
-            int low = (int) eightBitByteArray[audioByte];
-            audioByte++;
-            int high = (int) eightBitByteArray[audioByte];
-            audioByte++;
-            int sample = (high << 8) + (low & 0x00ff);
+            for (int channel = 0; channel < nbChannels; channel++)
+            {
+                // Do the byte to sample conversion.
+                int low = (int) eightBitByteArray[audioByte];
+                audioByte++;
+                int high = (int) eightBitByteArray[audioByte];
+                audioByte++;
+                int sample = (high << 8) + (low & 0x00ff);
 
-            toReturn[channel][index] = sample;
-        }
+                toReturn[channel][index] = sample;
+            }
         index++;
-    }
-    return toReturn;
-}
+        }
+        return toReturn;
 }
