@@ -1,18 +1,23 @@
 
+
 package soundtest;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
 import javax.sound.sampled.*; 
 import org.jtransforms.fft.*;
+import java.util.Arrays;
+import org.jtransforms.utils.CommonUtils;
 public class SoundAnalyze 
 {
     public static void main (String []args) throws UnsupportedAudioFileException, IOException, LineUnavailableException
     {
-       String fileName = "spanishflea.wav";
-       calculateMaxAmplitude(fileName);
-       calculateAvgAmplitude(fileName);
-       //calculateMaxFrequncy(fileName);
+       String fileName = "test3.wav";
+       //calculateMaxAmplitude(fileName);
+       //calculateAvgAmplitude(fileName);
+       calculateMaxFrequncy(fileName);
     }
     private static void calculateMaxAmplitude(String fileName) throws UnsupportedAudioFileException, IOException, LineUnavailableException
     {
@@ -83,4 +88,52 @@ public class SoundAnalyze
         index++;
         }
         return toReturn;
+}
+
+    
+    private static void calculateMaxFrequncy(String fileName) throws UnsupportedAudioFileException, IOException 
+    {
+      File soundFile = new File(fileName);
+      AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile);
+      int frameLength = (int)audioIn.getFrameLength();
+      int frameSize = audioIn.getFormat().getFrameSize();
+      int numChannels = audioIn.getFormat().getChannels();
+      byte[] buffer = new byte[frameLength * frameSize];
+      int readNums = audioIn.read(buffer);
+      double[] fftData = new double[CommonUtils.nextPow2(buffer.length*2)];
+      for(int i = 0; i < buffer.length; i++)
+      {
+          fftData[i] = (double)buffer[i];
+      }
+      System.out.println(fftData.length);
+      int x=0;
+      DoubleFFT_1D fft = new DoubleFFT_1D(buffer.length);
+      fft.realForwardFull(fftData);
+      System.out.println("done");
+      double[] magnitude = new double[fftData.length / 2];
+      for (int i = 0; i < magnitude.length;i++)
+      {
+          double real = fftData[2*i];
+          double imag = fftData[2*i+1];
+          magnitude[i] = Math.sqrt((real * real) + (imag * imag));
+      }
+      double maxMag = 0;
+      int maxMagIndex = 0;
+      for (int i = 0; i < magnitude.length;i++)
+      {
+          if (magnitude[i] > maxMag)
+          {
+              maxMag = magnitude[i];
+              maxMagIndex = i;
+          }
+      }
+      double freq = maxMagIndex * audioIn.getFormat().getFrameRate() / buffer.length;
+      System.out.println(maxMag);
+      System.out.println(maxMagIndex);
+      System.out.println(freq);
+    }
+
+
+
+
 }
