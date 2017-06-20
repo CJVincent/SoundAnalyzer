@@ -17,7 +17,7 @@ public class SoundAnalyze
        String fileName = "test3.wav";
        //calculateMaxAmplitude(fileName);
        //calculateAvgAmplitude(fileName);
-       calculateMaxFrequncy(fileName);
+       calculateMaxFrequency(fileName);
     }
     private static void calculateMaxAmplitude(String fileName) throws UnsupportedAudioFileException, IOException, LineUnavailableException
     {
@@ -91,7 +91,7 @@ public class SoundAnalyze
 }
 
     
-    private static void calculateMaxFrequncy(String fileName) throws UnsupportedAudioFileException, IOException 
+    private static void calculateMaxFrequency(String fileName) throws UnsupportedAudioFileException, IOException 
     {
       File soundFile = new File(fileName);
       AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile);
