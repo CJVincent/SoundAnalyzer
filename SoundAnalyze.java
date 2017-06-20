@@ -12,7 +12,7 @@ public class SoundAnalyze
        String fileName = "spanishflea.wav";
        calculateMaxAmplitude(fileName);
        calculateAvgAmplitude(fileName);
-       //calculateMaxFrequncy(fileName);
+       //calculateMaxFrequency(fileName);
     }
     private static void calculateMaxAmplitude(String fileName) throws UnsupportedAudioFileException, IOException, LineUnavailableException
     {
