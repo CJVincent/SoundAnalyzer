@@ -97,7 +97,6 @@ public class SoundAnalyze
       AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile);
       int frameLength = (int)audioIn.getFrameLength();
       int frameSize = audioIn.getFormat().getFrameSize();
-      int numChannels = audioIn.getFormat().getChannels();
       byte[] buffer = new byte[frameLength * frameSize];
       int readNums = audioIn.read(buffer);
       double[] fftData = new double[CommonUtils.nextPow2(buffer.length*2)];
@@ -106,7 +105,6 @@ public class SoundAnalyze
           fftData[i] = (double)buffer[i];
       }
       System.out.println(fftData.length);
-      int x=0;
       DoubleFFT_1D fft = new DoubleFFT_1D(buffer.length);
       fft.realForwardFull(fftData);
       System.out.println("done");
