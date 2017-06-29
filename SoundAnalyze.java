@@ -1,31 +1,37 @@
 
-
 package soundtest;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
 import javax.sound.sampled.*; 
-public class SoundAnalyze 
+public class SoundAnalyze extends Application
 {
-    public static void main (String []args) throws UnsupportedAudioFileException, IOException, LineUnavailableException
-    {
-        try {
-            // anaylze all the soundfiles in the current folder
-            DirectoryStream<Path> directory = Files.newDirectoryStream(Paths.get(System.getProperty("user.home")), "*.wav");
-            System.out.println(calculateLoudestSongInDirectory(directory));
-        } catch (Exception ex) {
-            Logger.getLogger(SoundAnalyze.class.getName()).log(Level.SEVERE, null, ex);
-        }
+    @Override
+    public void start(Stage stage) throws Exception {
+        Parent root = FXMLLoader.load(getClass().getResource("SoundAnalyzeGUI.fxml"));
+        
+        Scene scene = new Scene(root);
+        stage.setScene(scene);
+        stage.setTitle("WAV File Amplitude Analyzer");
+        stage.show();
     }
     
-    //Finds the point in the audio file with the highest amplitude and returns that value
-    private static int calculateMaxAmplitude(Path filePath) throws UnsupportedAudioFileException, IOException, LineUnavailableException
+    
+    public static void main (String []args) throws UnsupportedAudioFileException, IOException, LineUnavailableException
+    {
+       launch(args);
+    }
+    
+    //Finds the point in the audio file with the highest amplitude
+    protected static String calculateMaxAmplitude(Path filePath) throws UnsupportedAudioFileException, IOException, LineUnavailableException
     {
       File soundFile = new File(filePath.toString());
       AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile);
@@ -55,14 +61,16 @@ public class SoundAnalyze
                    maxIndex = i;
           }
       }
-      if (filePath.getNameCount() > 0)
-        filePath =filePath.subpath(filePath.getNameCount()-1,filePath.getNameCount()); //reduces filepath to just name of file
-      System.out.println("Max amplitude of " + filePath + ": " + max + " at frame " + maxIndex + " (" + (maxIndex / frameRate) + " seconds in)");
-      return max;
+      return "Max amplitude of " + trimPath(filePath) + " is " + max + " at " + LocalTime.MIN.plusSeconds(maxIndex / frameRate).toString();
     }
     
+    
+    protected static String calculateAvgAmplitude(Path filePath) throws UnsupportedAudioFileException, IOException 
+    {
+      return "Average amplitude of " + trimPath(filePath) + " is " + getAvgAmplitude(filePath);
+    }
     //returns average amplitude of the whole sound file
-    private static double calculateAvgAmplitude(Path filePath) throws UnsupportedAudioFileException, IOException 
+    protected static double getAvgAmplitude(Path filePath) throws UnsupportedAudioFileException, IOException
     {
       File soundFile = new File(filePath.toString());
       AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile);
@@ -76,14 +84,10 @@ public class SoundAnalyze
       for (int i = 0; i < ampData.length; i++)
           for (int j = 0; j < ampData[i].length;j++)
               totalAmp += Math.abs(ampData[i][j]);
-      if (filePath.getNameCount() > 0)
-        filePath =filePath.subpath(filePath.getNameCount()-1,filePath.getNameCount()); //reduces filepath to just name of file
-      System.out.println("Average amplitude of " + filePath + ": " + ((double)totalAmp / frameLength));
       return ((double)totalAmp / frameLength);
     }
-    
     //gets amplitude data by dividing each cahnnel into its own array, and by combining the high and low bytes for each sample
-    private static int[][] getUnscaledAmplitude(byte[] buffer, int numChannels)
+    protected static int[][] getUnscaledAmplitude(byte[] buffer, int numChannels)
     {
         int[][] ampData = new int[numChannels][buffer.length / (2 * numChannels)];
         int index = 0;
@@ -106,8 +110,8 @@ public class SoundAnalyze
         return ampData;
     }
 
-    //finds loudest second in song by looking at average amplitude over the second. Returns the second as int
-    private static int calculateLoudestSecond(Path filePath) throws UnsupportedAudioFileException, IOException
+    //finds loudest second in song by looking at average amplitude over the second.
+    protected static String calculateLoudestSecond(Path filePath) throws UnsupportedAudioFileException, IOException
     {
       File soundFile = new File(filePath.toString());
       AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile);
@@ -142,19 +146,16 @@ public class SoundAnalyze
               loudestSecond = i / frameRate;
           }
       }
-      if (filePath.getNameCount() > 0)
-        filePath =filePath.subpath(filePath.getNameCount()-1,filePath.getNameCount()); //reduces filepath to just name of file
-      System.out.println("Loudest second of " + filePath + ": " + loudestSecond + " with an average amplitude of " + loudestSecondAmp);
-      return loudestSecond;
+      return "Loudest second of " + trimPath(filePath) + " is " + LocalTime.MIN.plusSeconds(loudestSecond).toString();
     }
     
-    private static Path calculateLoudestSongInDirectory(DirectoryStream<Path> directory) throws UnsupportedAudioFileException, IOException, Exception
+    protected static String calculateLoudestSongInDirectory(ArrayList<Path> directory) throws UnsupportedAudioFileException, IOException, Exception
     {
         double loudestSongAmp = 0;
         Path loudestSong = null;
         for (Path p: directory)
         {
-            double temp =calculateAvgAmplitude(p);
+            double temp = getAvgAmplitude(p);
             if (temp > loudestSongAmp)
             {
                 loudestSongAmp = temp;
@@ -163,9 +164,14 @@ public class SoundAnalyze
         }
         if (loudestSong == null)
             throw new Exception("no .wav files in directory");
-        return loudestSong;
+        return trimPath(loudestSong);
     }
-    
+    private static String trimPath(Path filePath)
+    {
+        if (filePath.getNameCount() > 0)
+            filePath =filePath.subpath(filePath.getNameCount()-1,filePath.getNameCount()); //reduces filepath to just name of file
+        return filePath.toString();
+    }
     
     
 

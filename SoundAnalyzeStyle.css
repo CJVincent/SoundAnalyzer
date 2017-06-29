@@ -1,0 +1,33 @@
+.text-area .content
+{
+    -fx-background-color:dimgray;
+    -fx-text-fill:ivory;
+}
+.text-area 
+{
+    -fx-text-fill:ivory;
+}
+.text-field
+{
+    -fx-text-fill:ivory
+}
+.list-cell:even
+{
+    -fx-background-color:gray;
+    -fx-text-fill:ivory;
+}
+.list-cell:odd
+{
+    -fx-background-color:silver;
+    -fx-text-fill:black;
+}
+.list-cell:selected
+{
+    -fx-background-color:dodgerblue;
+    -fx-text-fill:white;
+}
+.list-cell:selected
+{
+    -fx-background-color:darkblue;
+    -fx-text-fill:white;
+}
