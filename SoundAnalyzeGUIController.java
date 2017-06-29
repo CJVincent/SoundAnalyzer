@@ -45,11 +45,11 @@ public class SoundAnalyzeGUIController implements Initializable {
     @FXML
     private Button selectFileButton;
     @FXML
-    private TextArea resultField;
+    private TextArea resultField; // displays results of analysis
     @FXML
-    private TextField chosenFileField;
+    private TextField chosenFileField; // lists selected files
     @FXML
-    private ListView<String> directoryList;
+    private ListView<String> directoryList; // lists files in directory, allows for multiple selection
     @FXML
     private Button selectDirectoryButton;
     @FXML
@@ -67,7 +67,8 @@ public class SoundAnalyzeGUIController implements Initializable {
     private File chosenDirectory;
     private FileChooser fileChooser;
     private DirectoryChooser directoryChooser;
-    private List<Path> chosenFiles;
+    private List<Path> chosenFiles; //internal list of selected files
+    //setup
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         // TODO
@@ -98,7 +99,7 @@ public class SoundAnalyzeGUIController implements Initializable {
                 });
     }    
 
-
+    //lets user select a file to add to chosenFiles
     @FXML
     private void handleSelectFileButtonEvent(ActionEvent event) throws IOException, Exception {
         
