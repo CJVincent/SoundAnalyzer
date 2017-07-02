@@ -9,12 +9,19 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane id="AnchorPane" maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="593.0" prefWidth="600.0" style="-fx-background-color: #383838;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="soundtest.SoundAnalyzeGUIController">
+<AnchorPane id="AnchorPane" maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="593.0" prefWidth="600.0" style="-fx-background-color: #383838; -fx-border-style: dashed; -fx-border-color: springgreen; -fx-border-width: 2; -fx-border-radius: 4;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="soundtest.SoundAnalyzeGUIController">
    <children>
-      <TextArea fx:id="resultField" editable="false" layoutX="51.0" layoutY="348.0" prefHeight="231.0" prefWidth="498.0" stylesheets="@SoundAnalyzeStyle.css">
+      <TextArea fx:id="resultField" editable="false" layoutX="51.0" layoutY="348.0" prefHeight="231.0" prefWidth="498.0" stylesheets="@SoundAnalyzeStyle.css" wrapText="true">
          <font>
             <Font name="Consolas" size="14.0" />
-         </font></TextArea>
+         </font>
+         <contextMenu>
+            <ContextMenu>
+              <items>
+                <MenuItem fx:id="exportButton" disable="true" mnemonicParsing="false" onAction="#handleExportButtonEvent" text="Export Results" />
+              </items>
+            </ContextMenu>
+         </contextMenu></TextArea>
       <Button fx:id="selectFileButton" layoutX="414.0" layoutY="255.0" mnemonicParsing="false" onAction="#handleSelectFileButtonEvent" style="-fx-background-color: lightslategray; -fx-text-fill: ghostwhite; -fx-border-color: ghostwhite; -fx-background-radius: 5;" text="Search for File...">
          <font>
             <Font name="Tahoma" size="12.0" />
@@ -73,15 +80,15 @@
             <Font name="Tahoma" size="12.0" />
          </font>
       </Button>
-      <Label layoutX="295.0" prefHeight="191.0" prefWidth="266.0" style="-fx-background-color: #383838;" text="AMPLITUDE ANALYZER 1.0" textAlignment="CENTER" wrapText="true">
+      <Label layoutX="300.0" layoutY="9.0" prefHeight="191.0" prefWidth="266.0" style="-fx-background-color: #383838;" text="AMPLITUDE ANALYZER 1.0" textAlignment="CENTER" wrapText="true">
          <font>
             <Font name="Kredit" size="32.0" />
          </font>
          <textFill>
             <RadialGradient centerX="0.5" centerY="0.5" radius="0.8023255813953488">
                <stops>
-                  <Stop color="RED" />
-                  <Stop color="#f6ff00" offset="1.0" />
+                  <Stop color="#00ff04" />
+                  <Stop color="#3200ff" offset="1.0" />
                </stops>
             </RadialGradient>
          </textFill>

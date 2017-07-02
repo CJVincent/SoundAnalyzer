@@ -14,6 +14,7 @@ import javafx.stage.Stage;
 import javax.sound.sampled.*; 
 public class SoundAnalyze extends Application
 {
+    //initialize stage and scene
     @Override
     public void start(Stage stage) throws Exception {
         Parent root = FXMLLoader.load(getClass().getResource("SoundAnalyzeGUI.fxml"));
@@ -40,10 +41,7 @@ public class SoundAnalyze extends Application
       int frameSize = audioIn.getFormat().getFrameSize();
       int numChannels = audioIn.getFormat().getChannels();
       byte[] buffer = new byte[frameLength * frameSize];
-      System.out.println(audioIn.getFormat());
-      System.out.println("Frame Length: " + audioIn.getFrameLength());
       int readNums = audioIn.read(buffer);
-      System.out.println("Bytes read : " + readNums + "\n" + buffer.length);
       int[][] ampData = getUnscaledAmplitude(buffer,numChannels);
       int max = 0;
       int maxIndex = 0; // frame #

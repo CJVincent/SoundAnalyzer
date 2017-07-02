@@ -7,11 +7,14 @@ package soundtest;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.URL;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
+import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -24,7 +27,9 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.ListView;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
@@ -42,8 +47,7 @@ import javax.sound.sampled.UnsupportedAudioFileException;
  */
 public class SoundAnalyzeGUIController implements Initializable {
 
-    @FXML
-    private Button selectFileButton;
+
     @FXML
     private TextArea resultField; // displays results of analysis
     @FXML
@@ -52,22 +56,14 @@ public class SoundAnalyzeGUIController implements Initializable {
     private ListView<String> directoryList; // lists files in directory, allows for multiple selection
     @FXML
     private Button selectDirectoryButton;
-    @FXML
-    private Button findLoudestSecondButton;
-    @FXML
-    private Button findMaxAmplitudeButton;    
-    @FXML
-    private GridPane buttonGrid;
-    @FXML
-    private Button findAvgAmplitudeButton;
-    @FXML
-    private Button findLoudestSongButton;
     
     private File chosenFile;
     private File chosenDirectory;
     private FileChooser fileChooser;
     private DirectoryChooser directoryChooser;
     private List<Path> chosenFiles; //internal list of selected files
+    @FXML
+    private MenuItem exportButton;
     //setup
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -104,6 +100,7 @@ public class SoundAnalyzeGUIController implements Initializable {
     private void handleSelectFileButtonEvent(ActionEvent event) throws IOException, Exception {
         
         fileChooser.setTitle("Choose WAV File...");
+        fileChooser.getExtensionFilters().clear();
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("WAV", "*.wav"));
         chosenFile = fileChooser.showOpenDialog((Stage)((Node)(event.getSource())).getScene().getWindow());
 
@@ -117,6 +114,7 @@ public class SoundAnalyzeGUIController implements Initializable {
             }
         }
     }
+    //lets user choose a directory to select WAV files from
     @FXML
     private void handleSelectDirectoryButtonEvent(ActionEvent event) throws IOException 
     {
@@ -153,10 +151,12 @@ public class SoundAnalyzeGUIController implements Initializable {
             String s = SoundAnalyze.calculateLoudestSecond(p);
             resultField.appendText(s + "\n");
             }
+            exportButton.setDisable(false);
         }
         else
         {
             resultField.setText("No files selected.");
+            exportButton.setDisable(true);
         }
     }
 
@@ -170,10 +170,12 @@ public class SoundAnalyzeGUIController implements Initializable {
             String s = SoundAnalyze.calculateMaxAmplitude(p);
             resultField.appendText(s + "\n");
             }
+            exportButton.setDisable(false);
         }
         else
         {
             resultField.setText("No files selected.");
+            exportButton.setDisable(true);
         }
     }
 
@@ -187,10 +189,12 @@ public class SoundAnalyzeGUIController implements Initializable {
             String s = SoundAnalyze.calculateAvgAmplitude(p);
             resultField.appendText(s + "\n");
             }
+            exportButton.setDisable(false);
         }
         else
         {
             resultField.setText("No files selected.");
+            exportButton.setDisable(true);
         }
     }
 
@@ -200,10 +204,12 @@ public class SoundAnalyzeGUIController implements Initializable {
         {
             resultField.clear();
             resultField.setText("Loudest song is " + SoundAnalyze.calculateLoudestSongInDirectory((ArrayList<Path>) chosenFiles));
+            exportButton.setDisable(false);
         }
         else
         {
             resultField.setText("Not enough files selected.");
+            exportButton.setDisable(true);
         }
     }
 
@@ -213,6 +219,23 @@ public class SoundAnalyzeGUIController implements Initializable {
         chosenFileField.clear();
         chosenFiles.clear();
         directoryList.getSelectionModel().clearSelection();
+    }
+
+    @FXML
+    private void handleExportButtonEvent(ActionEvent event) throws IOException 
+    {
+        System.out.println(resultField.getText());
+        fileChooser.setTitle("Save results...");
+        fileChooser.getExtensionFilters().clear();
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("TXT", "*.txt"));
+        File file = fileChooser.showSaveDialog(exportButton.getParentPopup().getScene().getWindow());
+        if(file != null)
+        {
+            PrintWriter writer = new PrintWriter(file);
+            writer.print(resultField.getText());
+            writer.close();
+        }
+
     }
 
 
