@@ -11,10 +11,8 @@ import java.io.PrintWriter;
 import java.net.URL;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
-import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -27,12 +25,11 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
-import javafx.scene.control.ContextMenu;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
@@ -51,12 +48,12 @@ public class SoundAnalyzeGUIController implements Initializable {
     @FXML
     private TextArea resultField; // displays results of analysis
     @FXML
-    private TextField chosenFileField; // lists selected files
+    private ListView<String> chosenFilesList;// lists selected files
     @FXML
     private ListView<String> directoryList; // lists files in directory, allows for multiple selection
     @FXML
     private Button selectDirectoryButton;
-    
+
     private File chosenFile;
     private File chosenDirectory;
     private FileChooser fileChooser;
@@ -64,30 +61,45 @@ public class SoundAnalyzeGUIController implements Initializable {
     private List<Path> chosenFiles; //internal list of selected files
     @FXML
     private MenuItem exportButton;
+    @FXML
+    private Button selectFileButton;
+    @FXML
+    private GridPane buttonGrid;
+    @FXML
+    private Button findLoudestSecondButton;
+    @FXML
+    private Button findAvgAmplitudeButton;
+    @FXML
+    private Button findLoudestSongButton;
+    @FXML
+    private Button findMaxAmplitudeButton;
+
+
     //setup
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        // TODO
         chosenFiles = new ArrayList<Path>();
         fileChooser = new FileChooser();
         fileChooser.setInitialDirectory(new File(System.getProperty("user.home") + "\\Music"));
         directoryChooser = new DirectoryChooser();
         directoryChooser.setInitialDirectory(new File(System.getProperty("user.home") + "\\Music"));
         directoryList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        chosenFilesList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         //add change listener for list view
         directoryList.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<String>() 
                 {
                     public void changed(ObservableValue<? extends String> ov, 
                     String old_val, String new_val)
                     {
-                       chosenFileField.clear();
                        chosenFiles.clear();
+                       chosenFilesList.getItems().clear();
                        for (String s : directoryList.getSelectionModel().getSelectedItems())
                         {
                             if (s!=null)
                             {
-                            chosenFileField.appendText(s + " ");
+                            chosenFilesList.getItems().add(s);
                             chosenFiles.add(Paths.get(chosenDirectory.toString(),s).toAbsolutePath());
+                            
                             }
                         }
 
@@ -102,6 +114,7 @@ public class SoundAnalyzeGUIController implements Initializable {
         fileChooser.setTitle("Choose WAV File...");
         fileChooser.getExtensionFilters().clear();
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("WAV", "*.wav"));
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("MP3", "*.mp3"));
         chosenFile = fileChooser.showOpenDialog((Stage)((Node)(event.getSource())).getScene().getWindow());
 
         if (chosenFile != null)
@@ -109,7 +122,7 @@ public class SoundAnalyzeGUIController implements Initializable {
             fileChooser.setInitialDirectory(chosenFile.getParentFile());
             if(!chosenFiles.contains(chosenFile.toPath().toAbsolutePath()))
             {
-            chosenFileField.appendText(trimPath(chosenFile.toPath())+ " ");
+            chosenFilesList.getItems().add(trimPath(chosenFile.toPath()));
             chosenFiles.add(chosenFile.toPath().toAbsolutePath());
             }
         }
@@ -125,7 +138,7 @@ public class SoundAnalyzeGUIController implements Initializable {
         {
             directoryChooser.setInitialDirectory(chosenDirectory);
             ObservableList<String> files = FXCollections.observableArrayList();
-            DirectoryStream<Path> dStream = Files.newDirectoryStream(chosenDirectory.toPath(), "*.wav");
+            DirectoryStream<Path> dStream = Files.newDirectoryStream(chosenDirectory.toPath(), "*.{wav,mp3}");
             for (Path p : dStream)
             {
                 files.add(trimPath(p));
@@ -142,10 +155,12 @@ public class SoundAnalyzeGUIController implements Initializable {
     }
 
     @FXML
-    private void handleFindLoudestSecondButtonEvent(ActionEvent event) throws UnsupportedAudioFileException, IOException {
+    private void handleFindLoudestSecondButtonEvent(ActionEvent event) throws UnsupportedAudioFileException, IOException, Exception 
+    {
         if (chosenFiles.size() > 0)
         {
             resultField.clear();
+            //resultField.setText("Processing...");
             for (Path p : chosenFiles)
             {
             String s = SoundAnalyze.calculateLoudestSecond(p);
@@ -161,7 +176,8 @@ public class SoundAnalyzeGUIController implements Initializable {
     }
 
     @FXML
-    private void handleFindMaxAmplitudeButtonEvent(ActionEvent event) throws UnsupportedAudioFileException, IOException, LineUnavailableException {
+    private void handleFindMaxAmplitudeButtonEvent(ActionEvent event) throws UnsupportedAudioFileException, IOException, LineUnavailableException, Exception 
+    {
         if (chosenFiles.size() > 0)
         {
             resultField.clear();
@@ -180,7 +196,9 @@ public class SoundAnalyzeGUIController implements Initializable {
     }
 
     @FXML
-    private void handleFindAvgAmplitudeButtonEvent(ActionEvent event) throws UnsupportedAudioFileException, IOException, LineUnavailableException {
+    private void handleFindAvgAmplitudeButtonEvent(ActionEvent event) throws UnsupportedAudioFileException, IOException, LineUnavailableException, Exception 
+    {
+
         if (chosenFiles.size() > 0)
         {
             resultField.clear();
@@ -199,7 +217,8 @@ public class SoundAnalyzeGUIController implements Initializable {
     }
 
     @FXML
-    private void handleFindLoudestSongButtonEvent(ActionEvent event) throws UnsupportedAudioFileException, IOException, Exception {
+    private void handleFindLoudestSongButtonEvent(ActionEvent event) throws UnsupportedAudioFileException, IOException, Exception 
+    {
         if (chosenFiles.size() > 1)
         {
             resultField.clear();
@@ -216,7 +235,7 @@ public class SoundAnalyzeGUIController implements Initializable {
     @FXML
     private void handleClearButtonEvent(ActionEvent event) 
     {
-        chosenFileField.clear();
+        chosenFilesList.getItems().clear();
         chosenFiles.clear();
         directoryList.getSelectionModel().clearSelection();
     }
@@ -231,11 +250,30 @@ public class SoundAnalyzeGUIController implements Initializable {
         File file = fileChooser.showSaveDialog(exportButton.getParentPopup().getScene().getWindow());
         if(file != null)
         {
-            PrintWriter writer = new PrintWriter(file);
-            writer.print(resultField.getText());
-            writer.close();
+            try (PrintWriter writer = new PrintWriter(file)) 
+            {
+                writer.print(resultField.getText());
+            }
         }
 
+    }
+
+    @FXML
+    private void handleMouseExitEvent(MouseEvent event) {
+        ((Node)event.getSource()).getScene().setCursor(javafx.scene.Cursor.DEFAULT);
+    }
+
+    @FXML
+    private void handleMouseEnterEvent(MouseEvent event) {
+        ((Node)event.getSource()).getScene().setCursor(javafx.scene.Cursor.HAND);
+    }
+
+    @FXML
+    private void handleRemoveButtonEvent(ActionEvent event) 
+    {
+        for(String s:chosenFilesList.getSelectionModel().getSelectedItems())
+            chosenFiles.remove(Paths.get(chosenDirectory.toString(),s).toAbsolutePath());
+        chosenFilesList.getItems().removeAll(chosenFilesList.getSelectionModel().getSelectedItems());
     }
 
 

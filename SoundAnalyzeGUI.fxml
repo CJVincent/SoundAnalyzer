@@ -9,9 +9,9 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane id="AnchorPane" maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="593.0" prefWidth="600.0" style="-fx-background-color: #383838; -fx-border-style: dashed; -fx-border-color: springgreen; -fx-border-width: 2; -fx-border-radius: 4;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="soundtest.SoundAnalyzeGUIController">
+<AnchorPane id="AnchorPane" maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="659.0" prefWidth="772.0" style="-fx-background-color: #383838; -fx-border-style: dashed; -fx-border-color: springgreen; -fx-border-width: 2; -fx-border-radius: 4;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="soundtest.SoundAnalyzeGUIController">
    <children>
-      <TextArea fx:id="resultField" editable="false" layoutX="51.0" layoutY="348.0" prefHeight="231.0" prefWidth="498.0" stylesheets="@SoundAnalyzeStyle.css" wrapText="true">
+      <TextArea fx:id="resultField" editable="false" layoutX="33.0" layoutY="380.0" prefHeight="261.0" prefWidth="710.0" stylesheets="@SoundAnalyzeStyle.css" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="31.0" AnchorPane.rightAnchor="31.0" AnchorPane.topAnchor="378.0">
          <font>
             <Font name="Consolas" size="14.0" />
          </font>
@@ -22,16 +22,21 @@
               </items>
             </ContextMenu>
          </contextMenu></TextArea>
-      <Button fx:id="selectFileButton" layoutX="414.0" layoutY="255.0" mnemonicParsing="false" onAction="#handleSelectFileButtonEvent" style="-fx-background-color: lightslategray; -fx-text-fill: ghostwhite; -fx-border-color: ghostwhite; -fx-background-radius: 5;" text="Search for File...">
+      <Button fx:id="selectFileButton" layoutX="414.0" layoutY="255.0" mnemonicParsing="false" onAction="#handleSelectFileButtonEvent" onMouseEntered="#handleMouseEnterEvent" onMouseExited="#handleMouseExitEvent" style="-fx-background-color: lightslategray; -fx-text-fill: ghostwhite; -fx-border-color: ghostwhite; -fx-background-radius: 5;" text="Search for File..." AnchorPane.rightAnchor="255.0" AnchorPane.topAnchor="255.0">
          <font>
             <Font name="Tahoma" size="12.0" />
-         </font></Button>
-      <TextField fx:id="chosenFileField" editable="false" layoutX="54.0" layoutY="255.0" prefHeight="25.0" prefWidth="350.0" style="-fx-background-color: dimgray;" stylesheets="@SoundAnalyzeStyle.css" />
-      <Button fx:id="selectDirectoryButton" layoutX="285.0" layoutY="203.0" mnemonicParsing="false" onAction="#handleSelectDirectoryButtonEvent" style="-fx-background-color: lightslategray; -fx-text-fill: ghostwhite; -fx-border-color: ghostwhite; -fx-background-radius: 5;" text="Select Directory..." wrapText="true">
+         </font>
+         <tooltip>
+            <Tooltip text="Search for a file to add to selected file list" />
+         </tooltip></Button>
+      <Button fx:id="selectDirectoryButton" layoutX="406.0" layoutY="206.0" mnemonicParsing="false" onAction="#handleSelectDirectoryButtonEvent" onMouseEntered="#handleMouseEnterEvent" onMouseExited="#handleMouseExitEvent" style="-fx-background-color: lightslategray; -fx-text-fill: ghostwhite; -fx-border-color: ghostwhite; -fx-background-radius: 5;" text="Select Directory..." wrapText="true" AnchorPane.rightAnchor="253.0" AnchorPane.topAnchor="206.0">
          <font>
             <Font name="Tahoma" size="12.0" />
-         </font></Button>
-      <ListView fx:id="directoryList" layoutX="54.0" layoutY="17.0" prefHeight="213.0" prefWidth="221.0" style="-fx-background-color: dimgray;" stylesheets="@SoundAnalyzeStyle.css">
+         </font>
+         <tooltip>
+            <Tooltip text="Select a directory to analyze files" />
+         </tooltip></Button>
+      <ListView fx:id="directoryList" layoutX="60.0" layoutY="23.0" prefHeight="213.0" prefWidth="280.0" style="-fx-background-color: dimgray;" stylesheets="@SoundAnalyzeStyle.css" AnchorPane.leftAnchor="25.0" AnchorPane.rightAnchor="392.0" AnchorPane.topAnchor="21.0">
          <contextMenu>
             <ContextMenu>
               <items>
@@ -42,7 +47,7 @@
               </items>
             </ContextMenu>
          </contextMenu></ListView>
-      <GridPane fx:id="buttonGrid" layoutX="54.0" layoutY="286.0" prefHeight="30.0" prefWidth="507.0">
+      <GridPane fx:id="buttonGrid" layoutX="54.0" layoutY="330.0" prefHeight="30.0" prefWidth="507.0">
         <columnConstraints>
           <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
           <ColumnConstraints hgrow="SOMETIMES" prefWidth="100.0" />
@@ -53,34 +58,53 @@
           <RowConstraints maxHeight="-Infinity" minHeight="10.0" prefHeight="100.0" vgrow="SOMETIMES" />
         </rowConstraints>
          <children>
-            <Button fx:id="findLoudestSecondButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#handleFindLoudestSecondButtonEvent" style="-fx-background-color: lightslategray; -fx-text-fill: ghostwhite; -fx-border-color: ghostwhite; -fx-background-radius: 5;" text="Find Loudest Second" GridPane.columnIndex="1">
+            <Button fx:id="findLoudestSecondButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#handleFindLoudestSecondButtonEvent" onMouseEntered="#handleMouseEnterEvent" onMouseExited="#handleMouseExitEvent" style="-fx-background-color: lightslategray; -fx-text-fill: ghostwhite; -fx-border-color: ghostwhite; -fx-background-radius: 5;" text="Find Loudest Second" GridPane.columnIndex="1">
                <font>
                   <Font name="Tahoma" size="12.0" />
-               </font></Button>
-            <Button fx:id="findAvgAmplitudeButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#handleFindAvgAmplitudeButtonEvent" prefHeight="30.0" prefWidth="107.0" style="-fx-background-color: lightslategray; -fx-text-fill: ghostwhite; -fx-border-color: ghostwhite; -fx-background-radius: 5;" text="Find Avg. Amplitude" GridPane.columnIndex="2">
+               </font>
+               <tooltip>
+                  <Tooltip text="Find the loudest second of the selected song(s)" />
+               </tooltip>
+            </Button>
+            <Button fx:id="findAvgAmplitudeButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#handleFindAvgAmplitudeButtonEvent" onMouseEntered="#handleMouseEnterEvent" onMouseExited="#handleMouseExitEvent" prefHeight="30.0" prefWidth="107.0" style="-fx-background-color: lightslategray; -fx-text-fill: ghostwhite; -fx-border-color: ghostwhite; -fx-background-radius: 5;" text="Find Avg. Amplitude" GridPane.columnIndex="2">
                <font>
                   <Font name="Tahoma" size="12.0" />
-               </font></Button>
-            <Button fx:id="findLoudestSongButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#handleFindLoudestSongButtonEvent" style="-fx-background-color: lightslategray; -fx-text-fill: ghostwhite; -fx-border-color: ghostwhite; -fx-background-radius: 5;" text="Find Loudest Song" GridPane.columnIndex="3">
+               </font>
+               <tooltip>
+                  <Tooltip text="Find the average amplitude of the selected song(s)" />
+               </tooltip>
+            </Button>
+            <Button fx:id="findLoudestSongButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#handleFindLoudestSongButtonEvent" onMouseEntered="#handleMouseEnterEvent" onMouseExited="#handleMouseExitEvent" style="-fx-background-color: lightslategray; -fx-text-fill: ghostwhite; -fx-border-color: ghostwhite; -fx-background-radius: 5;" text="Find Loudest Song" GridPane.columnIndex="3">
                <font>
                   <Font name="Tahoma" size="12.0" />
-               </font></Button>
-            <Button fx:id="findMaxAmplitudeButton" mnemonicParsing="false" onAction="#handleFindMaxAmplitudeButtonEvent" prefHeight="49.0" prefWidth="127.0" style="-fx-background-color: lightslategray; -fx-text-fill: ghostwhite; -fx-border-color: ghostwhite; -fx-background-radius: 5;" text="Find Max Amplitude">
+               </font>
+               <tooltip>
+                  <Tooltip text="Find the song with the highest average amplitude (requires at least 2 songs)" />
+               </tooltip>
+            </Button>
+            <Button fx:id="findMaxAmplitudeButton" mnemonicParsing="false" onAction="#handleFindMaxAmplitudeButtonEvent" onMouseEntered="#handleMouseEnterEvent" onMouseExited="#handleMouseExitEvent" prefHeight="49.0" prefWidth="127.0" style="-fx-background-color: lightslategray; -fx-text-fill: ghostwhite; -fx-border-color: ghostwhite; -fx-background-radius: 5;" text="Find Max Amplitude">
                <font>
                   <Font name="Tahoma" size="12.0" />
-               </font></Button>
+               </font>
+               <tooltip>
+                  <Tooltip text="Find the max amplitude of the song(s) and at what second it's at" />
+               </tooltip>
+            </Button>
          </children>
       </GridPane>
-      <Label layoutX="54.0" style="-fx-background-color: #383838;" text="Directory Files" textFill="WHITE">
+      <Label layoutX="52.0" layoutY="6.0" style="-fx-background-color: transparent;" text="Directory Files" textFill="WHITE" AnchorPane.leftAnchor="52.0">
          <font>
             <Font name="Teen Light Italic" size="14.0" />
          </font></Label>
-      <Button layoutX="523.0" layoutY="255.0" mnemonicParsing="false" onAction="#handleClearButtonEvent" style="-fx-background-color: lightslategray; -fx-text-fill: ghostwhite; -fx-border-color: ghostwhite; -fx-background-radius: 5;" text="Clear">
+      <Button layoutX="412.0" layoutY="282.0" mnemonicParsing="false" onAction="#handleClearButtonEvent" onMouseEntered="#handleMouseEnterEvent" onMouseExited="#handleMouseExitEvent" prefHeight="25.0" prefWidth="105.0" style="-fx-background-color: lightslategray; -fx-text-fill: ghostwhite; -fx-border-color: ghostwhite; -fx-background-radius: 5;" text="Clear" AnchorPane.rightAnchor="255.0" AnchorPane.topAnchor="280.0">
          <font>
             <Font name="Tahoma" size="12.0" />
          </font>
+         <tooltip>
+            <Tooltip text="Clears selected files" />
+         </tooltip>
       </Button>
-      <Label layoutX="300.0" layoutY="9.0" prefHeight="191.0" prefWidth="266.0" style="-fx-background-color: #383838;" text="AMPLITUDE ANALYZER 1.0" textAlignment="CENTER" wrapText="true">
+      <Label layoutX="300.0" layoutY="9.0" prefHeight="191.0" prefWidth="266.0" style="-fx-background-color: transparent;" text="AMPLITUDE ANALYZER 1.0" textAlignment="CENTER" wrapText="true" AnchorPane.rightAnchor="25.0" AnchorPane.topAnchor="25.0">
          <font>
             <Font name="Kredit" size="32.0" />
          </font>
@@ -93,15 +117,24 @@
             </RadialGradient>
          </textFill>
       </Label>
-      <Label layoutX="51.0" layoutY="331.0" style="-fx-background-color: #383838;" text="Results" textFill="WHITE">
+      <Label layoutX="54.0" layoutY="360.0" style="-fx-background-color: transparent;" text="Results" textFill="WHITE" AnchorPane.leftAnchor="54.0">
          <font>
             <Font name="Teen Light Italic" size="14.0" />
          </font>
       </Label>
-      <Label layoutX="54.0" layoutY="238.0" style="-fx-background-color: #383838;" text="Selected Files" textFill="WHITE">
+      <Label layoutX="54.0" layoutY="238.0" style="-fx-background-color: transparent;" text="Selected Files" textFill="WHITE" AnchorPane.leftAnchor="52.0">
          <font>
             <Font name="Teen Light Italic" size="14.0" />
          </font>
       </Label>
+      <ListView fx:id="chosenFilesListView" layoutX="28.0" layoutY="257.0" orientation="HORIZONTAL" prefHeight="46.0" prefWidth="386.0" style="-fx-background-color: dimgray;" stylesheets="@SoundAnalyzeStyle.css" AnchorPane.leftAnchor="27.0" AnchorPane.rightAnchor="394.0">
+         <contextMenu>
+            <ContextMenu>
+              <items>
+                <MenuItem mnemonicParsing="false" onAction="#handleRemoveButtonEvent" text="Remove song" />
+              </items>
+            </ContextMenu>
+         </contextMenu>
+      </ListView>
    </children>
 </AnchorPane>

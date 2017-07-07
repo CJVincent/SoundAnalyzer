@@ -21,6 +21,10 @@
     -fx-background-color:silver;
     -fx-text-fill:black;
 }
+.list-cell:empty
+{
+    -fx-background-color:dimgray;
+}
 .list-cell:selected
 {
     -fx-background-color:dodgerblue;
