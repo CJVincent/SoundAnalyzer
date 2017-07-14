@@ -6,9 +6,16 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import static java.lang.System.exit;
 import java.nio.file.Path;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -21,10 +28,9 @@ public class SoundAnalyze extends Application
     @Override
     public void start(Stage stage) throws Exception {
         Parent root = FXMLLoader.load(getClass().getResource("SoundAnalyzeGUI.fxml"));
-        
         Scene scene = new Scene(root);
         stage.setScene(scene);
-        stage.setTitle("WAV File Amplitude Analyzer");
+        stage.setTitle("Song Amplitude Analyzer");
         stage.show();
     }
     
@@ -32,10 +38,11 @@ public class SoundAnalyze extends Application
     public static void main (String []args) throws UnsupportedAudioFileException, IOException, LineUnavailableException, Exception
     {
        launch(args);
+       exit(0);
     }
     
     //Finds the point in the audio file with the highest amplitude
-    protected static String calculateMaxAmplitude(Path filePath) throws UnsupportedAudioFileException, IOException, LineUnavailableException, Exception
+    protected static Result calculateMaxAmplitude(Path filePath) throws UnsupportedAudioFileException, IOException, LineUnavailableException, Exception
     {
       File soundFile = new File(filePath.toString());
       AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile);
@@ -63,13 +70,16 @@ public class SoundAnalyze extends Application
                    maxIndex = i;
           }
       }
-      return "Max amplitude of " + trimPath(filePath) + " is " + max + " at " + LocalTime.MIN.plusSeconds(maxIndex / frameRate).toString();
+      String s = "Max amplitude of " + trimPath(filePath) + " is " + max + " at " + LocalTime.MIN.plusSeconds(maxIndex / frameRate).toString();
+      return new Result(s,trimPath(filePath),max);
     }
     
     
-    protected static String calculateAvgAmplitude(Path filePath) throws UnsupportedAudioFileException, IOException, Exception 
+    protected static Result calculateAvgAmplitude(Path filePath) throws UnsupportedAudioFileException, IOException, Exception 
     {
-      return "Average amplitude of " + trimPath(filePath) + " is " + getAvgAmplitude(filePath);
+      double amp = getAvgAmplitude(filePath);
+      String s = "Average amplitude of " + trimPath(filePath) + " is " + amp;
+      return new Result(s,trimPath(filePath), amp);
     }
     //returns average amplitude of the whole sound file
     protected static double getAvgAmplitude(Path filePath) throws UnsupportedAudioFileException, IOException, Exception
@@ -90,7 +100,7 @@ public class SoundAnalyze extends Application
     
 
     //finds loudest second in song by looking at average amplitude over the second.
-    protected static String calculateLoudestSecond(Path filePath) throws UnsupportedAudioFileException, IOException, Exception
+    protected static Result calculateLoudestSecond(Path filePath) throws UnsupportedAudioFileException, IOException, Exception
     {
       File soundFile = new File(filePath.toString());
       AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile);
@@ -124,27 +134,45 @@ public class SoundAnalyze extends Application
               loudestSecond = i / frameRate;
           }
       }
-      return "Loudest second of " + trimPath(filePath) + " is " + LocalTime.MIN.plusSeconds(loudestSecond).toString();
+      String s = "Loudest second of " + trimPath(filePath) + " is " + LocalTime.MIN.plusSeconds(loudestSecond).toString();
+      return new Result(s,trimPath(filePath),loudestSecond);
     }
     
-    protected static String calculateLoudestSongInDirectory(ArrayList<Path> directory) throws UnsupportedAudioFileException, IOException, Exception
+     protected static Result calculateLoudestSongInList(final ArrayList<Path> directory) throws UnsupportedAudioFileException, IOException, Exception
     {
+        final ConcurrentLinkedDeque<Result> songAmps = new ConcurrentLinkedDeque<>();
         double loudestSongAmp = 0;
-        Path loudestSong = null;
-        for (Path p: directory)
+        String loudestSong = null;
+        final ExecutorService executor = Executors.newWorkStealingPool();
+        for (final Path p: directory)
         {
-            double temp = getAvgAmplitude(p);
-            if (temp > loudestSongAmp)
+            executor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        songAmps.add(calculateAvgAmplitude(p));
+                    } catch (Exception ex) {
+                        Logger.getLogger(SoundAnalyze.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+            });
+        }
+        executor.shutdown();
+        executor.awaitTermination(1, TimeUnit.MINUTES);
+        for (Result r: songAmps)
+        {
+            if (r.getValue() > loudestSongAmp)
             {
-                loudestSongAmp = temp;
-                loudestSong = p;
+                loudestSong = r.getPath();
+                loudestSongAmp = r.getValue();
             }
         }
-        if (loudestSong == null)
-            throw new Exception("no .wav files in directory");
-        return trimPath(loudestSong);
+        //if (loudestSong == null)
+        //    throw new Exception("no compatible files in directory");
+        String s = "The loudest song in the list is " + loudestSong;
+        return new Result(s, loudestSong, loudestSongAmp);
     }
-    
+  
     //gets amplitude data by dividing each channel into its own array, and by combining the high and low bytes for each sample
     protected static int[][] getUnscaledAmplitude(byte[] buffer, int numChannels)
     {

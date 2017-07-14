@@ -16,10 +16,18 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Service;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -27,9 +35,11 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextArea;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
@@ -54,11 +64,12 @@ public class SoundAnalyzeGUIController implements Initializable {
     @FXML
     private Button selectDirectoryButton;
 
-    private File chosenFile;
-    private File chosenDirectory;
+    private File chosenFile; //used in select file option
+    private File chosenDirectory; // used in select directory option
     private FileChooser fileChooser;
     private DirectoryChooser directoryChooser;
     private List<Path> chosenFiles; //internal list of selected files
+    private Service thread;
     @FXML
     private MenuItem exportButton;
     @FXML
@@ -73,7 +84,14 @@ public class SoundAnalyzeGUIController implements Initializable {
     private Button findLoudestSongButton;
     @FXML
     private Button findMaxAmplitudeButton;
-
+    @FXML
+    private Button cancelButton;
+    @FXML
+    private AnchorPane anchorPane;
+    @FXML
+    private Button clearButton;
+    @FXML
+    private ProgressBar progressBar;
 
     //setup
     @Override
@@ -99,7 +117,7 @@ public class SoundAnalyzeGUIController implements Initializable {
                             {
                             chosenFilesList.getItems().add(s);
                             chosenFiles.add(Paths.get(chosenDirectory.toString(),s).toAbsolutePath());
-                            
+
                             }
                         }
 
@@ -157,81 +175,27 @@ public class SoundAnalyzeGUIController implements Initializable {
     @FXML
     private void handleFindLoudestSecondButtonEvent(ActionEvent event) throws UnsupportedAudioFileException, IOException, Exception 
     {
-        if (chosenFiles.size() > 0)
-        {
-            resultField.clear();
-            //resultField.setText("Processing...");
-            for (Path p : chosenFiles)
-            {
-            String s = SoundAnalyze.calculateLoudestSecond(p);
-            resultField.appendText(s + "\n");
-            }
-            exportButton.setDisable(false);
-        }
-        else
-        {
-            resultField.setText("No files selected.");
-            exportButton.setDisable(true);
-        }
+        doFunction("loudestSec");
     }
 
     @FXML
     private void handleFindMaxAmplitudeButtonEvent(ActionEvent event) throws UnsupportedAudioFileException, IOException, LineUnavailableException, Exception 
     {
-        if (chosenFiles.size() > 0)
-        {
-            resultField.clear();
-            for (Path p : chosenFiles)
-            {
-            String s = SoundAnalyze.calculateMaxAmplitude(p);
-            resultField.appendText(s + "\n");
-            }
-            exportButton.setDisable(false);
-        }
-        else
-        {
-            resultField.setText("No files selected.");
-            exportButton.setDisable(true);
-        }
+        doFunction("max");
     }
 
     @FXML
     private void handleFindAvgAmplitudeButtonEvent(ActionEvent event) throws UnsupportedAudioFileException, IOException, LineUnavailableException, Exception 
     {
-
-        if (chosenFiles.size() > 0)
-        {
-            resultField.clear();
-            for (Path p : chosenFiles)
-            {
-            String s = SoundAnalyze.calculateAvgAmplitude(p);
-            resultField.appendText(s + "\n");
-            }
-            exportButton.setDisable(false);
-        }
-        else
-        {
-            resultField.setText("No files selected.");
-            exportButton.setDisable(true);
-        }
+        doFunction("avg");
     }
+
 
     @FXML
     private void handleFindLoudestSongButtonEvent(ActionEvent event) throws UnsupportedAudioFileException, IOException, Exception 
     {
-        if (chosenFiles.size() > 1)
-        {
-            resultField.clear();
-            resultField.setText("Loudest song is " + SoundAnalyze.calculateLoudestSongInDirectory((ArrayList<Path>) chosenFiles));
-            exportButton.setDisable(false);
-        }
-        else
-        {
-            resultField.setText("Not enough files selected.");
-            exportButton.setDisable(true);
-        }
+       doFunction("loudestSong");
     }
-
     @FXML
     private void handleClearButtonEvent(ActionEvent event) 
     {
@@ -265,16 +229,144 @@ public class SoundAnalyzeGUIController implements Initializable {
 
     @FXML
     private void handleMouseEnterEvent(MouseEvent event) {
+        if (!((Node)event.getSource()).isDisable())
         ((Node)event.getSource()).getScene().setCursor(javafx.scene.Cursor.HAND);
+        else
+        ((Node)event.getSource()).getScene().setCursor(javafx.scene.Cursor.WAIT);
     }
-
     @FXML
     private void handleRemoveButtonEvent(ActionEvent event) 
     {
+        //update internal list before removing from UI list
         for(String s:chosenFilesList.getSelectionModel().getSelectedItems())
-            chosenFiles.remove(Paths.get(chosenDirectory.toString(),s).toAbsolutePath());
+        {   
+            for (int i = 0; i < chosenFiles.size(); i++)
+            {
+                Path p = chosenFiles.get(i);
+                if(s.equals(trimPath(p)))
+                    chosenFiles.remove(p);
+            }
+        }
         chosenFilesList.getItems().removeAll(chosenFilesList.getSelectionModel().getSelectedItems());
     }
+    //attempts to cancel current task, calculations already in execution may still finish
+    @FXML
+    private void handleCancelButtonEvent(ActionEvent event) 
+    {
+        thread.cancel();
+    }
+    private void disableButtons()
+    {
+        findMaxAmplitudeButton.setDisable(true);
+        findAvgAmplitudeButton.setDisable(true);
+        findLoudestSongButton.setDisable(true);
+        findLoudestSecondButton.setDisable(true);
+        for (MenuItem m : directoryList.getContextMenu().getItems())
+            m.setDisable(true);
+        exportButton.setDisable(true);
+        cancelButton.setDisable(false);
+        cancelButton.setVisible(true);
+                
+    }
+    private void enableButtons()
+    {
+        findMaxAmplitudeButton.setDisable(false);
+        findAvgAmplitudeButton.setDisable(false);
+        findLoudestSongButton.setDisable(false);
+        findLoudestSecondButton.setDisable(false);
+        for (MenuItem m : directoryList.getContextMenu().getItems())
+            m.setDisable(false);
+        exportButton.setDisable(false);
+        cancelButton.setDisable(true);
+        cancelButton.setVisible(false);
+    }
+    private void doFunction(final String function)
+    {
+         if (chosenFiles.size() > 0)
+        {
+            resultField.clear();
+            disableButtons();
+            progressBar.setVisible(true);
+            //Services and Tasks keep UI from freezing during calculation
+            final ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+            thread = new Service() {
+                @Override
+                protected Task createTask() {
+                    return new Task() {
+                        @Override
+                        protected Object call() throws Exception {
+                            if (!function.equals("loudestSong"))
+                            {
+                                for (final Path p : chosenFiles)
+                                {
+                                    if (isCancelled())
+                                    {
+                                        return null;
+                                    }
+                                executor.execute(new Runnable(){
+                                    @Override
+                                    public void run() {
+                                        Result r = new Result();
+                                        try {
+                                           if (function.equals("max"))
+                                           {r = SoundAnalyze.calculateMaxAmplitude(p);}
+                                           if (function.equals("avg"))
+                                           {r = SoundAnalyze.calculateAvgAmplitude(p);}
+                                           if (function.equals("loudestSec"))
+                                           {r = SoundAnalyze.calculateLoudestSecond(p);}
+                                           if (!isCancelled())
+                                           {resultField.appendText(r.getOutput() + "\n");
+                                           updateProgress(((ThreadPoolExecutor)executor).getCompletedTaskCount(), chosenFiles.size()-1);
+                                           }
+                                        } catch (Exception ex) {
+                                            Logger.getLogger(SoundAnalyzeGUIController.class.getName()).log(Level.SEVERE, null, ex);
+                                        }
+                                    }
+                                });
+                                }
+                                executor.shutdown();
+                                executor.awaitTermination(1, TimeUnit.MINUTES);
+                            }
+                            else
+                            {
+                                resultField.clear();
+                                if (chosenFiles.size() == 1)
+                                    resultField.setText("The loudest song in the list is " + trimPath(chosenFiles.get(0)));
+                                else
+                                    resultField.setText(SoundAnalyze.calculateLoudestSongInList((ArrayList<Path>) chosenFiles).getOutput());
+                            }
+                            return null;
+                        }
+                        @Override
+                        protected void succeeded() {
+                            super.succeeded();
+                            enableButtons();
+                            progressBar.setVisible(false);
+                        }
 
+                        @Override
+                        protected void failed() {
+                            super.failed();
+                            enableButtons();
+                            progressBar.setVisible(false);
+                        }
 
+                        @Override
+                        protected void cancelled() {
+                            super.cancelled();
+                            enableButtons();
+                            progressBar.setVisible(false);
+                        }
+                    };
+                }
+            };
+            progressBar.progressProperty().bind(thread.progressProperty());
+            thread.start();
+        }
+        else
+        {
+            resultField.setText("No files selected.");
+            exportButton.setDisable(true);
+        }
+    }
 }

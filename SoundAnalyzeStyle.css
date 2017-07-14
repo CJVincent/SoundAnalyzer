@@ -27,11 +27,23 @@
 }
 .list-cell:selected
 {
-    -fx-background-color:dodgerblue;
-    -fx-text-fill:white;
-}
-.list-cell:selected
-{
     -fx-background-color:darkblue;
     -fx-text-fill:white;
+}
+.button
+{
+    -fx-background-color:lightslategray;
+    -fx-text-fill:ghostwhite;
+    -fx-border-color:ghostwhite;
+    -fx-background-radius:5;
+    -fx-border-radius:5;
+}
+.button:hover
+{
+    -fx-border-width:2;
+}
+.progress-bar
+{
+    -fx-indeterminate-bar-animation-time:0.4;
+    -fx-accent:limegreen;
 }
